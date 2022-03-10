@@ -40,9 +40,10 @@ class PlayerSprite(BaseSprite):
         super().__init__(game, x, y, groups=game.players, layer=1)
         self.y_velocity = Config.MAX_GRAVITY
         self.speed = 5
+        self.standing = False
         self.color = Config.RED
         self.image.fill(self.color)
-        self.standing = False
+        
 
     def update(self):
         self.handle_movement()
@@ -74,8 +75,7 @@ class PlayerSprite(BaseSprite):
 
 class GroundSprite(BaseSprite):
     def __init__(self, game, x, y):
-        super().__init__(game, x, y, groups=game.ground)
-        self.y_velocity = 0
+        super().__init__(game, x, y, groups=game.ground, layer=0)
         self.image.fill(Config.GREEN)
 
 
@@ -96,9 +96,8 @@ class Game:
         pygame.init()
         pygame.font.init()
         self.font = pygame.font.Font(None, 30)
-        self.screen = pygame.display.set_mode((Config.WINDOW_WIDTH, Config.WINDOW_HEIGHT)) 
+        self.screen = pygame.display.set_mode( (Config.WINDOW_WIDTH, Config.WINDOW_HEIGHT) ) 
         self.clock = pygame.time.Clock()
-        self.running = True
 
     def new(self):
         self.playing = True
