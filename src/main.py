@@ -54,6 +54,11 @@ class BaseSprite(pygame.sprite.Sprite):
         self.rect.x = x * Config.TILE_SIZE
         self.rect.y = y * Config.TILE_SIZE
 
+    def scale(self, factor=2):
+        self.rect.width *= factor
+        self.rect.height *= factor
+        self.image = pygame.transform.scale(self.image, (self.rect.width, self.rect.height))
+
 
 class PlayerSprite(BaseSprite):
     def __init__(self, game, x, y, **kwargs):
@@ -66,8 +71,8 @@ class PlayerSprite(BaseSprite):
         self.standing = False
         self.color = Config.RED
         # self.image.fill(self.color)
-        
 
+    
     def update(self):
         self.handle_movement()
         self.rect.y = self.rect.y - self.y_velocity
@@ -118,7 +123,7 @@ class Game:
         self.ground = pygame.sprite.LayeredUpdates()
         self.players = pygame.sprite.LayeredUpdates()
 
-        self.player = PlayerSprite(self, 10, 10)
+        self.player = PlayerSprite(self, 10, 0)
         for i in range(20):
             GroundSprite(self, i , 12)
         for i in range(5, 10):
