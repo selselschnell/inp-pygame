@@ -15,15 +15,15 @@ class Spritesheet:
 
 
 class Config:
-    WINDOW_WIDTH = 640
-    WINDOW_HEIGHT = 420
+    TILE_SIZE = 32
+    WINDOW_WIDTH = TILE_SIZE * 20
+    WINDOW_HEIGHT = TILE_SIZE * 10
     BLACK = (0, 0, 0)
     RED = (255, 0, 0)
     GREEN = (0, 255, 0)
     GREY = (128, 128, 128)
     WHITE = (255, 255, 255)
     FPS = 30
-    TILE_SIZE = 32
     MAX_GRAVITY = -3
 
 
@@ -92,13 +92,35 @@ class PlayerSprite(BaseSprite):
             self.rect.x = self.rect.x + self.speed
         if keys[pygame.K_SPACE]:
             self.jump()
+        self.update_camera()
+
+
+    def update_camera(self, ):
+        x_c, y_c = self.game.screen.get_rect().center
+        x_diff = x_c - self.rect.centerx
+        y_diff = y_c - self.rect.centery
+        for sprite in self.game.all_sprites:
+            sprite.rect.x += x_diff
+            sprite.rect.y += y_diff
+
+
+    def is_standing(self, hit):
+        print(hit.rect.top - (self.rect.bottom + Config.MAX_GRAVITY))
+        return abs(hit.rect.top - (self.rect.bottom + Config.MAX_GRAVITY)) <= 3
+
 
     def check_collision(self):
         hits = pygame.sprite.spritecollide(self, self.game.ground, False)
         for hit in hits:
-            if hit.rect.top >= self.rect.bottom + Config.MAX_GRAVITY:
+            if self.is_standing(hit):
                 self.rect.bottom = hit.rect.top
                 self.standing = True
+            else:
+                hit_dir = hit.rect.x - self.rect.x
+                if hit_dir < 0:
+                    self.rect.left = hit.rect.right
+                else:
+                    self.rect.right = hit.rect.left
 
 
 class GroundSprite(BaseSprite):
@@ -116,6 +138,18 @@ class Game:
         self.clock = pygame.time.Clock()
         self.bg = pygame.image.load("res/bg-small.png")
 
+    
+    def load_map(self, mapfile):
+        with open(mapfile, "r") as f:
+            for (y, lines) in enumerate(f.readlines()):
+                for (x, c) in enumerate(lines):
+                    if c == "b":
+                        GroundSprite(self, x, y)
+                    if c == "p":
+                        self.player = PlayerSprite(self, x, y)
+
+
+
     def new(self):
         self.playing = True
 
@@ -123,11 +157,7 @@ class Game:
         self.ground = pygame.sprite.LayeredUpdates()
         self.players = pygame.sprite.LayeredUpdates()
 
-        self.player = PlayerSprite(self, 10, 0)
-        for i in range(20):
-            GroundSprite(self, i , 12)
-        for i in range(5, 10):
-            GroundSprite(self, i, 9)
+        self.load_map("maps/level-01.txt")
 
     def handle_events(self):
         for event in pygame.event.get():
