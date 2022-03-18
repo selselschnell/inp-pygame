@@ -25,7 +25,7 @@ class Config:
     WHITE = (255, 255, 255)
     FPS = 30
     MAX_GRAVITY = -3
-    BG_SPEED = 0.5
+    BG_SPEED = 1.5
 
 
 
@@ -106,6 +106,10 @@ class PlayerSprite(BaseSprite):
 
         # Shift Background
         self.game.bg_x += x_diff * Config.BG_SPEED
+        if self.game.bg_x > Config.WINDOW_WIDTH:
+            self.game.bg_x = -Config.WINDOW_WIDTH
+        elif self.game.bg_x < -Config.WINDOW_WIDTH:
+            self.game.bg_x = Config.WINDOW_WIDTH
 
 
     def is_standing(self, hit):
