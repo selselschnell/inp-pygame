@@ -25,6 +25,7 @@ class Config:
     WHITE = (255, 255, 255)
     FPS = 30
     MAX_GRAVITY = -3
+    BG_SPEED = 0.5
 
 
 
@@ -103,6 +104,9 @@ class PlayerSprite(BaseSprite):
             sprite.rect.x += x_diff
             sprite.rect.y += y_diff
 
+        # Shift Background
+        self.game.bg_x += x_diff * Config.BG_SPEED
+
 
     def is_standing(self, hit):
         print(hit.rect.top - (self.rect.bottom + Config.MAX_GRAVITY))
@@ -137,6 +141,7 @@ class Game:
         self.screen = pygame.display.set_mode( (Config.WINDOW_WIDTH, Config.WINDOW_HEIGHT) ) 
         self.clock = pygame.time.Clock()
         self.bg = pygame.image.load("res/bg-small.png")
+        self.bg_x = 0
 
     
     def load_map(self, mapfile):
@@ -168,7 +173,12 @@ class Game:
         self.all_sprites.update()
 
     def draw(self):
-        self.screen.blit(self.bg, (0, 0))
+        self.screen.blit(self.bg, (self.bg_x, 0))
+        tmp_bg = pygame.transform.flip(self.bg, True, False)
+        second_x = Config.WINDOW_WIDTH + self.bg_x
+        if self.bg_x > 0:
+            second_x -= 2*Config.WINDOW_WIDTH
+        self.screen.blit(tmp_bg, (second_x, 0))
         self.all_sprites.draw(self.screen)
         pygame.display.update()
 
