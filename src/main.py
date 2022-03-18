@@ -109,7 +109,6 @@ class PlayerSprite(BaseSprite):
 
 
     def is_standing(self, hit):
-        print(hit.rect.top - (self.rect.bottom + Config.MAX_GRAVITY))
         return abs(hit.rect.top - (self.rect.bottom + Config.MAX_GRAVITY)) <= 3
 
 
