@@ -25,7 +25,7 @@ class Config:
     WHITE = (255, 255, 255)
     FPS = 30
     MAX_GRAVITY = -3
-    BG_SPEED = 1.5
+    BG_SPEED = 0.3
 
 
 
@@ -75,6 +75,7 @@ class PlayerSprite(BaseSprite):
         self.animation_frames = [0, 32]
         self.current_frame = 0
         self.animation_duration = 30
+        self.jump_force = 10
         
 
     def animate(self, x_diff):
@@ -95,7 +96,7 @@ class PlayerSprite(BaseSprite):
 
     def jump(self):
         if self.standing:
-            self.y_velocity = 10
+            self.y_velocity = self.jump_force
             self.standing = False
 
     def handle_movement(self):
@@ -127,7 +128,26 @@ class PlayerSprite(BaseSprite):
 
 
     def is_standing(self, hit):
-        return abs(hit.rect.top - (self.rect.bottom + Config.MAX_GRAVITY)) <= 3
+        if self.y_velocity > 0:
+            return False
+        if abs(hit.rect.top - self.rect.bottom) > abs(Config.MAX_GRAVITY):
+            return False
+        if abs(self.rect.left - hit.rect.right) <= abs(self.speed):
+            return False
+        if abs(hit.rect.left - self.rect.right) <= abs(self.speed):
+            return False
+        return True
+
+    def hit_head(self, hit):
+        if self.y_velocity < 0:
+            return False
+        if abs(self.rect.top - hit.rect.bottom) > abs(self.jump_force):
+            return False
+        if abs(self.rect.left - hit.rect.right) <= abs(self.speed):
+            return False
+        if abs(hit.rect.left - self.rect.right) <= abs(self.speed):
+            return False
+        return True
 
 
     def check_collision(self):
@@ -135,13 +155,24 @@ class PlayerSprite(BaseSprite):
         for hit in hits:
             if self.is_standing(hit):
                 self.rect.bottom = hit.rect.top
-                self.standing = True
+                break
+            if self.hit_head(hit):
+                self.y_velocity = 0
+                self.rect.top = hit.rect.bottom
+                break
+
+        hits = pygame.sprite.spritecollide(self, self.game.ground, False)
+        for hit in hits:
+            hit_dir = hit.rect.x - self.rect.x
+            if hit_dir < 0:
+                self.rect.left = hit.rect.right
             else:
-                hit_dir = hit.rect.x - self.rect.x
-                if hit_dir < 0:
-                    self.rect.left = hit.rect.right
-                else:
-                    self.rect.right = hit.rect.left
+                self.rect.right = hit.rect.left
+
+        self.rect.y += 1
+        hits = pygame.sprite.spritecollide(self, self.game.ground, False)
+        self.standing = True if hits else False
+        self.rect.y -= 1
 
 
 class GroundSprite(BaseSprite):
@@ -169,8 +200,6 @@ class Game:
                         GroundSprite(self, x, y)
                     if c == "p":
                         self.player = PlayerSprite(self, x, y)
-
-
 
     def new(self):
         self.playing = True
