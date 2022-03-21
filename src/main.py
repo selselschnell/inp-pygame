@@ -71,7 +71,20 @@ class PlayerSprite(BaseSprite):
         self.speed = 5
         self.standing = False
         self.color = Config.RED
-        # self.image.fill(self.color)
+        self.anim_counter = 0
+        self.animation_frames = [0, 32]
+        self.current_frame = 0
+        self.animation_duration = 30
+        
+
+    def animate(self, x_diff):
+        self.anim_counter += abs(x_diff)
+        new_frame = round(self.anim_counter / self.animation_duration) % len(self.animation_frames)
+        if self.current_frame != new_frame:
+            new_pos = self.animation_frames[new_frame]
+            self.image = self.spritesheet.get_sprite(new_pos, self.y_pos, self.width, self.height)
+            self.current_frame = new_frame
+            self.anim_counter = self.anim_counter % (len(self.animation_frames) * self.animation_duration)
 
     
     def update(self):
@@ -96,13 +109,14 @@ class PlayerSprite(BaseSprite):
         self.update_camera()
 
 
-    def update_camera(self, ):
+    def update_camera(self):
         x_c, y_c = self.game.screen.get_rect().center
         x_diff = x_c - self.rect.centerx
         y_diff = y_c - self.rect.centery
         for sprite in self.game.all_sprites:
             sprite.rect.x += x_diff
             sprite.rect.y += y_diff
+        self.animate(x_diff)
 
         # Shift Background
         self.game.bg_x += x_diff * Config.BG_SPEED
